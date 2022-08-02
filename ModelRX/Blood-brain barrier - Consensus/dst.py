@@ -19,14 +19,13 @@ def assignBasicMassProb(state, probability, PPV, NPV):
 # Output is dictionary `q` with ground mass probability for 4 different states ('P', 'N', 'PN', '0').
 
 def assignGroundMassProb_N(m):
-    q = {}
     n_sources = len(m)
-    
-    q['PN'] = 1
+
+    q = {'PN': 1}
     for i in range(n_sources):
-        q['PN'] = q['PN'] * m[i]['PN']
-    
-    
+        q['PN'] *= m[i]['PN']
+            
+
     q['P'] = 0.
     qList = list(itertools.product(['P', 'PN'], repeat=n_sources))
     for keys in qList:
@@ -36,11 +35,11 @@ def assignGroundMassProb_N(m):
         for i in range(n_sources):
             subq = subq * m[i][listKeys[i]]
 
-        q['P'] = q['P'] + subq
+        q['P'] += subq
 
     q['P'] = q['P'] - q['PN']
-            
-        
+
+
     q['N'] = 0.
     qList = list(itertools.product(['N', 'PN'], repeat=n_sources))
     for keys in qList:
@@ -50,11 +49,11 @@ def assignGroundMassProb_N(m):
         for i in range(n_sources):
             subq = subq * m[i][listKeys[i]]
 
-        q['N'] = q['N'] + subq
+        q['N'] += subq
 
     q['N'] = q['N'] - q['PN']        
-        
-    
+
+
     q['0'] = 0.
     qList = list(itertools.product(['N', 'PN', 'P'], repeat=n_sources))
     for keys in qList:
@@ -64,7 +63,7 @@ def assignGroundMassProb_N(m):
         for i in range(n_sources):
             subq = subq * m[i][listKeys[i]]
 
-        q['0'] = q['0'] + subq
+        q['0'] += subq
 
     q['0'] = q['0'] - q['PN'] - q['P'] - q['N']
 

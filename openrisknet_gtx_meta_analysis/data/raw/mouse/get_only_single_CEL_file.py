@@ -25,10 +25,7 @@ def only_single_CEL_file(d1, preferred_study="gse72081"):
         for cel_file in d1[k]:
             if cel_file.lower().count(preferred_study.lower())>0:
                 preferred_cel_file = cel_file
-        if preferred_cel_file == "":
-            d2[k]=d1[k][0]
-        else:
-            d2[k] = preferred_cel_file
+        d2[k] = d1[k][0] if preferred_cel_file == "" else preferred_cel_file
     return(d2)
     
 if __name__ == "__main__":

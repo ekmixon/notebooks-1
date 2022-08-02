@@ -10,15 +10,16 @@ def get_good_accessions(url):
     # I had already installed phantomjs and it is in the PATH
     driver = webdriver.PhantomJS()
     driver.get(url)
-    print("URL=" + url)
+    print(f"URL={url}")
     accession_list = driver.find_elements_by_class_name('col_accession')
     projects = driver.find_elements_by_class_name('col_project')
-    
-    accessions_to_parse=[]
+
     ignore_projects =  ['new-generis','envirogenomarkers', 'ntc','predtox']
-    for i,proj in enumerate(projects):
-        if not proj.text.lower() in ignore_projects:
-            accessions_to_parse.append(accession_list[i].text)
+    accessions_to_parse = [
+        accession_list[i].text
+        for i, proj in enumerate(projects)
+        if proj.text.lower() not in ignore_projects
+    ]
 
     driver.close()
     return(accessions_to_parse)
@@ -47,7 +48,7 @@ def experiments_info(accession_ids, url_prefix='http://wwwdev.ebi.ac.uk/fg/dixa/
         description = ''
         tech_type = ''
         contents_dict = {}
-        for i, t in enumerate(titles):
+        for t in titles:
             title = t.text.lower()
             title1 = re.sub('\s*:$','',t.text) # This one we need for Xpath search
             retrieved_data = driver.find_elements_by_xpath('//div[@class="col_title" and contains(text(),"' + title1 + '")]/ancestor::td/following-sibling::td/div[@class="col_contents"]/*')
@@ -75,12 +76,13 @@ def experiments_info(accession_ids, url_prefix='http://wwwdev.ebi.ac.uk/fg/dixa/
                 # for d in descr_out:
                 #    if descr.count(d.lower()) > 0:
                 #        good_experiment = False
-                if descr.count('vivo')>0 and descr.count('vitro')<1:
-                    # Then this is an in-vivo experiment, so discard it
-                    # Also check for cases with "Ex vivo" or "Ex-vivo"
-                    if len(re.findall('ex[\s-]*vivo',s, re.IGNORECASE)) < 1:
-                        good_experiment = False
-                    
+                if (
+                    descr.count('vivo') > 0
+                    and descr.count('vitro') < 1
+                    and len(re.findall('ex[\s-]*vivo', s, re.IGNORECASE)) < 1
+                ):
+                    good_experiment = False
+
             if title.count('technology') > 0 and title.count('type') > 0:
                 tech_type = contents_dict[title1].lower()
                 # Then this is "Technology Type:" row
@@ -101,7 +103,10 @@ def experiments_info(accession_ids, url_prefix='http://wwwdev.ebi.ac.uk/fg/dixa/
             # ignored_experiments[id] = {titles[k].text:contents[k].text for k in range(len(titles))}
             ignored_experiments[id] = contents_dict
     driver.close()
-    print("In total {} out of {} are possibly good experiments".format(len(experiments_info.keys()), len(accession_ids)))
+    print(
+        f"In total {len(experiments_info.keys())} out of {len(accession_ids)} are possibly good experiments"
+    )
+
     return(experiments_info, ignored_experiments)
 
 

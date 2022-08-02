@@ -2,7 +2,7 @@ import csv
 from chembl_webresource_client.new_client import new_client
 
 # This will be our resulting structure mapping compound ChEMBL IDs into target uniprot IDs
-compounds2targets = dict()
+compounds2targets = {}
 
 # First, let's just parse the csv file to extract compounds ChEMBL IDs:
 with open('data/processed/only_chembl_ids_05compounds.tsv', 'r') as csvfile:#'compounds_list.csv', 'r') as csvfile:
@@ -34,7 +34,15 @@ for key, val in compounds2targets.items():
         targets = new_client.target.filter(target_chembl_id__in=lval[i:i + chunk_size]).only(
             ['target_components'])
         uniprots |= set(
-            sum([[comp['accession'] for comp in t['target_components']] for t in targets],[]))
+            sum(
+                (
+                    [comp['accession'] for comp in t['target_components']]
+                    for t in targets
+                ),
+                [],
+            )
+        )
+
     compounds2targets[key] = uniprots
 
 # Finally write it to the output csv file

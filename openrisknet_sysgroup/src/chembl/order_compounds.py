@@ -4,6 +4,7 @@ This module is used to convert PubChem CIDs to CHEMBL ids
 @author: J. Bayjan
 '''
 
+
 import pandas as pd
 
 tanimoto = pd.read_csv("tanimoto_scores_unit_scaled_chembl_ids_dist.tsv", sep="\t", index_col=0)
@@ -36,9 +37,9 @@ tanimoto_1.sort_index(axis="columns", inplace=True)
 array_data_1.sort_index(axis="index",inplace=True)
 array_data_1.sort_index(axis="columns",inplace=True)
 
-assert all(array_data_1.index.values==array_data_1.columns.values)==True
-assert all(array_data_1.index.values==tanimoto_1.columns.values)==True
-assert all(protein_distance_2.index.values==tanimoto_1.columns.values)==True
+assert all(array_data_1.index.values==array_data_1.columns.values)
+assert all(array_data_1.index.values==tanimoto_1.columns.values)
+assert all(protein_distance_2.index.values==tanimoto_1.columns.values)
 
 protein_distance_2.to_csv("pidgin3_tg_gates_predictions_ad0_no_missing_only_comps_euclDistScaled_ordered.tsv",sep="\t")
 tanimoto_1.to_csv("tanimoto_scores_unit_scaled_chembl_ids_dist_ordered.tsv",sep="\t")

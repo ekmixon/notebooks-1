@@ -86,7 +86,7 @@ class Column:
         self.rdf_predicate = rdf_predicate
 
     def __repr__(self):
-        return '<Column {}:{}>'.format(self.name, self.data_type)
+        return f'<Column {self.name}:{self.data_type}>'
 
     @classmethod
     def decode(cls, d):
@@ -177,7 +177,7 @@ class InProgressDataset:
 
     @classmethod
     def get(cls, id, server=default_server):
-        route = '/datasets/{}/in-progress'.format(id)
+        route = f'/datasets/{id}/in-progress'
         return cls.decode(server.get(route), server=server)
 
     @classmethod
@@ -186,55 +186,52 @@ class InProgressDataset:
         return cls.decode(server.post(route, {'name': name}), server=server)
 
     def sample(self):
-        route = '/datasets/{}/in-progress/sample'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress/sample'
         return self.server.get(route)
 
     def upload_schema(self, schema : Schema):
-        route = '/datasets/{}/in-progress/schema/upload'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress/schema/upload'
         self.server.post(route, schema.encode())
         self.schema = schema
 
     def upload_schema_file(self, file : typing.TextIO):
-        route = '/datasets/{}/in-progress/schema/upload'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress/schema/upload'
         schemacontent = file.read()
         updated_dataset = InProgressDataset.decode(self.server.post(route, data=schemacontent))
         self.schema = updated_dataset.schema
 
     def upload_metadata(self, metadata):
-        route = '/datasets/{}/in-progress/metadata/upload'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress/metadata/upload'
         self.server.post(route, metadata)
         self.metadata = metadata
 
     def upload_metadata_file(self, file : typing.TextIO):
-        route = '/datasets/{}/in-progress/metadata/upload'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress/metadata/upload'
         metadatacontent = file.read()
         updated_dataset = InProgressDataset.decode(self.server.post(route, data=metadatacontent))
         self.metadata = updated_dataset.metadata
 
     def upload_data(self, data):
-        route = '/datasets/{}/in-progress/data/upload'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress/data/upload'
         return self.server.upload(route, {'data': data})
 
     def infer_schema(self):
-        route = '/datasets/{}/in-progress/schema/infer'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress/schema/infer'
         updated_dataset = self.server.post(route, None)
         self.schema = Schema.decode(updated_dataset['schema'])
 
     def delete(self):
-        route = '/datasets/{}/in-progress'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress'
         return self.server.delete(route)
 
     def publish(self, changelog):
-        route = '/datasets/{}/in-progress/publish'.format(self.id)
+        route = f'/datasets/{self.id}/in-progress/publish'
         return PublishedDataset.decode(self.server.post(route, {'changelog': changelog}))
 
 
     def copy_from(self, published_dataset):
-        route = '/datasets/{}/in-progress/copy-from/{}/versions/{}'.format(
-            self.id,
-            published_dataset.id,
-            published_dataset.version
-        )
+        route = f'/datasets/{self.id}/in-progress/copy-from/{published_dataset.id}/versions/{published_dataset.version}'
+
         return self.server.post(route)
 
 class PublishedDataset:
@@ -282,7 +279,7 @@ class PublishedDataset:
     @classmethod
     def get_all_raw(cls, server=default_server):
         route = '/datasets'
-        return [d for d in server.get(route)]
+        return list(server.get(route))
 
     @classmethod
     def get_all(cls, server=default_server):
@@ -291,12 +288,12 @@ class PublishedDataset:
 
     @classmethod
     def get(cls, id, version=LATEST, server=default_server):
-        route = '/datasets/{}/versions/{}'.format(id, version)
+        route = f'/datasets/{id}/versions/{version}'
         return cls.decode(server.get(route), server=server)
 
     @classmethod
     def get_versions(cls, id, server=default_server):
-        route = '/datasets/{}'.format(id)
+        route = f'/datasets/{id}'
         response = server.get(route)
         id, versions = response['id'], response['versions']
         return [
@@ -317,12 +314,11 @@ class PublishedDataset:
         dataset.infer_schema()
         if metadata is not None:
             dataset.upload_metadata(metadata)
-        published_dataset = dataset.publish('Initial version')
-        return published_dataset
+        return dataset.publish('Initial version')
 
 
     def new_version(self):
-        route = '/datasets/{}/versions/{}/create-new-version'.format(self.id, self.version)
+        route = f'/datasets/{self.id}/versions/{self.version}/create-new-version'
         return InProgressDataset.decode(self.server.post(route))
 
     def data_as_dataframe(self):
@@ -336,7 +332,7 @@ class PublishedDataset:
         df = df.loc[:, column_names] # re-order columns according to schema
         dataframes = [ df ]
         while (limit + offset) < total:
-            offset = offset + limit
+            offset += limit
             data = self.data_as_dict(limit, offset)
             df = pandas.DataFrame.from_records(data['data'])
             df = df.loc[:, column_names] # re-order columns according to schema
@@ -348,10 +344,10 @@ class PublishedDataset:
 
     def data_as_dict(self, limit=100, offset=0):
         querystring = urllib.parse.urlencode({'limit': limit, 'offset': offset})
-        route = '/datasets/{}/versions/{}/data?{}'.format(self.id, self.version, querystring)
+        route = f'/datasets/{self.id}/versions/{self.version}/data?{querystring}'
 
         return self.server.get(route)
 
     def openapi(self):
-        route = '/datasets/{}/versions/{}/openapi.json'.format(self.id, self.version)
+        route = f'/datasets/{self.id}/versions/{self.version}/openapi.json'
         return self.server.get(route)

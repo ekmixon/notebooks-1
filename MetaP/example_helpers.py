@@ -61,8 +61,9 @@ def process_fame_results(fame_out, df):
     for pred in fame_out.get('predictions', []):
         fame_pred = dict([(atom_labels[a['atomID']], a['probability']) for a in pred['atomPredictions']])
 
-        fame_positives = [a['probability'] for a in pred['atomPredictions'] if a['decision']]
-        if (fame_positives):
+        if fame_positives := [
+            a['probability'] for a in pred['atomPredictions'] if a['decision']
+        ]:
             cutoff = min(fame_positives)
 
         break

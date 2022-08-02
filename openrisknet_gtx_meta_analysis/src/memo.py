@@ -11,12 +11,13 @@ def get_good_accessions(url):
 
     accession_list = driver.find_elements_by_class_name('col_accession')
     projects = driver.find_elements_by_class_name('col_project')
-    
-    accessions_to_parse=[]
+
     ignore_projects =  ['new-generis','envirogenomarkers']
-    for i,proj in enumerate(projects):
-        if not proj.text.lower() in ignore_projects:
-            accessions_to_parse.append(accession_list[i].text)
+    accessions_to_parse = [
+        accession_list[i].text
+        for i, proj in enumerate(projects)
+        if proj.text.lower() not in ignore_projects
+    ]
 
     driver.close()
     return(accessions_to_parse)
@@ -63,7 +64,7 @@ def experiments_info(accession_ids, url_prefix='http://wwwdev.ebi.ac.uk/fg/dixa/
                 if descr.count('vivo')>0 and descr.count('vitro')<1:
                     # Then this is an in-vivo experiment, so discard it
                     good_experiment = False
-                    
+
             if title.count('technology') > 0 and title.count('type') > 0:
                 tech_type = contents[i].text.lower()
                 # Then this is "Technology Type:" row
@@ -81,7 +82,10 @@ def experiments_info(accession_ids, url_prefix='http://wwwdev.ebi.ac.uk/fg/dixa/
             print("tech type:=", tech_type)
             ignored_experiments[id] = {titles[k].text:contents[k].text for k in range(len(titles))}
     driver.close()
-    print("In total {} out of {} are possibly good experiments".format(len(experiments_info.keys()), len(accession_ids)))
+    print(
+        f"In total {len(experiments_info.keys())} out of {len(accession_ids)} are possibly good experiments"
+    )
+
     return(experiments_info, ignored_experiments)
 
 
@@ -91,11 +95,11 @@ if __name__ == "__main__":
 #    url = 'http://wwwdev.ebi.ac.uk/fg/dixa/browsestudies.html'
 #    accessions1 = get_good_accessions(url)
 #    print("Total accessions for url {}: {}".format(url,len(accessions1)))
-    
+
     # Web URL to retrieve
     url = 'http://wwwdev.ebi.ac.uk/fg/dixa/group/browse-table-studies.html?keywords=&sortby=relevance&sortorder=descending&page=1&pagesize=10'
     accessions2 = get_good_accessions(url)
-    print("Total accessions for url {}: {}".format(url,len(accessions2)))
+    print(f"Total accessions for url {url}: {len(accessions2)}")
     used_experiments, ignored_experiments = experiments_info(accession_ids=accessions2)
 
     # Just to test

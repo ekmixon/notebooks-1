@@ -10,7 +10,7 @@ def filter_absent_genes(pma_table_file, solv_exp_file,  output_file, log2ratio_f
     #array2compound_info = pd.read_table(workdir + "solvent_to_exposure_with_solvent_column.tsv", sep="\t")
     array2compound_info = pd.read_table(solv_exp_file, sep="\t")
     # Get a unique list of compounds
-    compounds=list(set([c for c in array2compound_info['compound'].values]))
+    compounds = list(set(list(array2compound_info['compound'].values)))
     present_genes = []
     for i in range(df.shape[0]):
         absents = [a for a in df.iloc[i,:] if str(a) == "A"]
